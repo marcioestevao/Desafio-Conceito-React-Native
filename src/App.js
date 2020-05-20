@@ -20,20 +20,33 @@ export default function App() {
       console.log(response.data);
       setRepositories(response.data);
     });
-  }, []);
+  }, ["title"]);
 
   async function handleLikeRepository(id) {
     const response = await api.post(`repositories/${id}/like`);
-    api.get("repositories").then((response) => {
-      console.log(response.data);
-      setRepositories(response.data);
+
+    const updatedRepository = response.data;
+
+    /**
+     * Conforme o conceito de imutabilidade, não podemos alterar
+     * a lista "repositories", e sim devemos criar uma nova lista
+     * com as informações que desejamos exibir
+     *
+     * No map abaixo, cada item da lista repositories é adicionado
+     * em uma nova lista. É verificado o id se é igual ao curtido.
+     * Se for ao invés de retornar o item já existente na lista
+     * retorna o response.data.
+     */
+    const newRepositories = repositories.map((repository) => {
+      if (repository.id === id) {
+        return updatedRepository;
+      } else {
+        return repository;
+      }
     });
-    // const indexRepo = repositories.indexOf(id);
 
-    // repositories[indexRepo].likes = response.likes;
-
-    // setRepositories(repositories);
-    // Implement "Like Repository" functionality
+    //Atualiza o State com a lista atualizada
+    setRepositories(newRepositories);
   }
 
   return (
@@ -56,7 +69,7 @@ export default function App() {
               <View style={styles.likesContainer}>
                 <Text
                   style={styles.likeText}
-                  // Remember to replace "1" below with repository ID: {`repository-likes-${repository.id}`}
+                  // A informação abaixo é utilizado pelo teste automático
                   testID={`repository-likes-${item.id}`}
                 >
                   {`${item.likes} curtidas`}
